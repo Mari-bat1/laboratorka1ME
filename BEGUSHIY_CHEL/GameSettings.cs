@@ -16,15 +16,14 @@ namespace BEGUSHIY_CHEL
 
         // Физика
         public double Gravity { get; set; } = 0.8;      // гравитация
-        public double JumpForce { get; set; } = -15;    // сила прыжка (отрицательная = вверх)
+        public double JumpForce { get; set; } = -15;    // сила прыжка 
         public double RunSpeed { get; set; } = 5;       // скорость бега
 
         // Сложность
-        public double ObstacleSpawnIntervalMs { get; set; } = 2000;  // интервал спавна (мс)
-        public double MinSpawnInterval { get; set; } = 1200;          // минимальный интервал
+        public double ObstacleSpawnIntervalMs { get; set; } = 2000;  // интервал спавна 
+        public double MinSpawnInterval { get; set; } = 1200;  
         public double DifficultyIncreaseRate { get; set; } = 0.2;    // ускорение со временем
 
         // Очки
-        public int ScorePerFrame { get; set; } = 1;      // очки за каждый кадр
-    }
+        public int ScorePerFrame { get; set; } = 1; 
 }

@@ -31,7 +31,7 @@ namespace BEGUSHIY_CHEL
 
             _timeSinceLastSpawn += deltaTime;
 
-            double randomFactor = new Random().NextDouble() * 1.4 + 0.8;
+            double randomFactor = new Random().NextDouble() * 0.5 + 0.9;
             double actualInterval = _currentSpawnInterval * randomFactor;
 
             if (_timeSinceLastSpawn >= _currentSpawnInterval)

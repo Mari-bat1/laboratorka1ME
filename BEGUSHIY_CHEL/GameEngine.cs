@@ -86,7 +86,7 @@ namespace BEGUSHIY_CHEL
             }
         }
 
-        // Метод для получения позиции игрока в формате System.Drawing.Point
+
         public System.Drawing.Point GetPlayerPosition()
         {
             return new System.Drawing.Point(_player.X, _player.Y);
