@@ -10,9 +10,9 @@ namespace BEGUSHIY_CHEL
         public int FieldWidth { get; set; } = 800;      // ширина игрового поля
         public int FieldHeight { get; set; } = 400;     // высота игрового поля
         public int GroundLevel { get; set; } = 350;     // Y-координата земли
-        public int PlayerSize { get; set; } = 30;       // размер игрока
-        public int ObstacleWidth { get; set; } = 20;    // ширина препятствия
-        public int ObstacleHeight { get; set; } = 30;   // высота препятствия
+        public int PlayerSize { get; set; } = 90;       // размер игрока
+        public int ObstacleWidth { get; set; } = 50;    // ширина препятствия
+        public int ObstacleHeight { get; set; } = 50;   // высота препятствия
 
         // Физика
         public double Gravity { get; set; } = 0.8;      // гравитация
@@ -21,9 +21,10 @@ namespace BEGUSHIY_CHEL
 
         // Сложность
         public double ObstacleSpawnIntervalMs { get; set; } = 2000;  // интервал спавна 
-        public double MinSpawnInterval { get; set; } = 1200;  
+        public double MinSpawnInterval { get; set; } = 1200;
         public double DifficultyIncreaseRate { get; set; } = 0.2;    // ускорение со временем
 
         // Очки
-        public int ScorePerFrame { get; set; } = 1; 
+        public int ScorePerFrame { get; set; } = 1;
+    }
 }

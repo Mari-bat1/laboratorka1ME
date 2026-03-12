@@ -2,11 +2,17 @@ namespace BEGUSHIY_CHEL
 {
     public partial class Form1 : Form
     {
+        private Image _runmanImage;
+        private Image _dangerImage;
+        private Image _fonImage;
+
         // Твой GameEngine
         private GameEngine _game;
 
         // Таймер для обновления
         private System.Windows.Forms.Timer _gameTimer;
+
+
 
         // Для отладки
         private Label _debugLabel;
@@ -27,6 +33,23 @@ namespace BEGUSHIY_CHEL
             _gameTimer.Interval = 16; // ~60 FPS
             _gameTimer.Tick += GameLoop;
             _gameTimer.Start();
+
+            // Загружаем картинки
+            try
+            {
+                // Убедись, что имена файлов совпадают с теми, что ты добавил(а)
+                _runmanImage = Image.FromFile("runman1.png");
+                _dangerImage = Image.FromFile("danger.png");
+                _fonImage = Image.FromFile("fon.png");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось загрузить картинки: {ex.Message}. Будут использоваться заглушки.");
+                // Если картинок нет, создадим заглушки, чтобы программа не падала
+                _runmanImage = new Bitmap(1, 1);
+                _dangerImage = new Bitmap(1, 1);
+                _fonImage = new Bitmap(1, 1);
+            }
 
             // Подписываемся на события
             _game.ScoreChanged += (score) =>
@@ -60,7 +83,7 @@ namespace BEGUSHIY_CHEL
             _debugLabel = new Label
             {
                 Location = new System.Drawing.Point(10, 50),
-                Size = new Size(400, 100),
+                Size = new Size(100, 20),
                 Text = "Нажми пробел для прыжка"
             };
             this.Controls.Add(_debugLabel);
@@ -78,7 +101,6 @@ namespace BEGUSHIY_CHEL
             }
         }
 
-        // Отрисовка (временная, чтобы увидеть, что работает)
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -86,38 +108,71 @@ namespace BEGUSHIY_CHEL
             if (_game == null) return;
 
             var g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // Сглаживание
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor; // Для пиксель-арта
 
-            // Получаем доступ к настройкам через рефлексию? 
-            // Нет, лучше добавить свойство в GameEngine!
-            // Но пока просто используем константу для теста
-            int groundLevel = 350; // временно, потом исправим
-
-            // Рисуем землю
-            using (var pen = new Pen(Color.Black))
+            // РИСУЕМ ФОН (задний план)
+            if (_fonImage != null && _fonImage.Width > 1)
             {
-                g.DrawLine(pen, 0, groundLevel, this.Width, groundLevel);
+                // Рисуем фон на весь экран (можно и с тайлингом, если картинка маленькая)
+                g.DrawImage(_fonImage, 0, 0, this.Width, this.Height);
+            }
+            else
+            {
+                // Заглушка: заливаем всё небом, а землю рисуем линией
+                using (var brush = new SolidBrush(Color.SkyBlue))
+                {
+                    g.FillRectangle(brush, 0, 0, this.Width, _game.Player.Y + _game.Player.Height); // Небо до земли
+                }
+                using (var brush = new SolidBrush(Color.Green))
+                {
+                    g.FillRectangle(brush, 0, _game.Player.Y + _game.Player.Height, this.Width, this.Height); // Земля
+                }
             }
 
-            // Рисуем игрока (красный квадрат)
-            var player = _game.Player;
-            using (var brush = new SolidBrush(Color.Red))
-            {
-                g.FillRectangle(brush, player.X, player.Y, player.Width, player.Height);
-            }
+            // Получаем уровень земли (из настроек или высчитываем)
+            int groundLevel = _game.Player.Y + _game.Player.Height; // Можно и так, но лучше брать из _settings
 
-            // Рисуем препятствия (синие квадраты)
-            using (var brush = new SolidBrush(Color.Blue))
+            // РИСУЕМ ПРЕПЯТСТВИЯ
+            if (_dangerImage != null && _dangerImage.Width > 1)
             {
                 foreach (var obstacle in _game.Obstacles)
                 {
-                    g.FillRectangle(brush, obstacle.X, obstacle.Y, obstacle.Width, obstacle.Height);
+                    // Рисуем картинку препятствия. Она может быть больше/меньше,
+                    // поэтому растягиваем её под размеры препятствия.
+                    g.DrawImage(_dangerImage,
+                        new Rectangle(obstacle.X, obstacle.Y, obstacle.Width, obstacle.Height));
+                }
+            }
+            else
+            {
+                // Заглушка: рисуем синие квадраты
+                using (var brush = new SolidBrush(Color.Blue))
+                {
+                    foreach (var obstacle in _game.Obstacles)
+                    {
+                        g.FillRectangle(brush, obstacle.X, obstacle.Y, obstacle.Width, obstacle.Height);
+                    }
+                }
+            }
+
+            // РИСУЕМ ИГРОКА (поверх препятствий)
+            if (_runmanImage != null && _runmanImage.Width > 1)
+            {
+                g.DrawImage(_runmanImage,
+                    new Rectangle(_game.Player.X, _game.Player.Y, _game.Player.Width, _game.Player.Height));
+            }
+            else
+            {
+                // Заглушка: рисуем красный квадрат
+                using (var brush = new SolidBrush(Color.Red))
+                {
+                    g.FillRectangle(brush, _game.Player.X, _game.Player.Y, _game.Player.Width, _game.Player.Height);
                 }
             }
 
             // Отладочная информация
-            _debugLabel.Text = $"Игрок: Y={player.Y}, На земле?={!player.IsJumping}\n" +
-                              $"Препятствий: {_game.Obstacles.Count}\n" +
-                              $"Счет: {_game.Score}";
+            _debugLabel.Text = $"Счет: {_game.Score}";
         }
 
         // Обработка клавиш

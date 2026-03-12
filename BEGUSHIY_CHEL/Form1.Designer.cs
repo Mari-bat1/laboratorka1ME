@@ -16,6 +16,10 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                _runmanImage?.Dispose();
+                _dangerImage?.Dispose();
+                _fonImage?.Dispose();
+                _gameTimer?.Dispose();
             }
             base.Dispose(disposing);
         }
