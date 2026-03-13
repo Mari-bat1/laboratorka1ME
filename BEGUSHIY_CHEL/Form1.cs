@@ -8,19 +8,16 @@ namespace BEGUSHIY_CHEL
 
         private Label _scoreLabel;
 
-        private Image _gameOverImage; // Картинка для Game Over (можно не использовать)
+        private Image _gameOverImage;
         private bool _showGameOverScreen = false;
 
-        // Для анимации
-        private Image[] _runmanFrames;      // Массив кадров
-        private int _currentFrame = 0;      // Текущий кадр
-        private int _frameCounter = 0;      // Счетчик для смены кадров
-        private const int FramesPerSecond = 10; // Сколько раз в секунду менять кадр
+        private Image[] _runmanFrames;      // кадры
+        private int _currentFrame = 0;      // текущий кадр
+        private int _frameCounter = 0;      // счетчик
+        private const int FramesPerSecond = 10; // фпс
 
-        // Твой GameEngine
         private GameEngine _game;
 
-        // Таймер для обновления
         private System.Windows.Forms.Timer _gameTimer;
 
 
@@ -31,20 +28,17 @@ namespace BEGUSHIY_CHEL
             this.Text = "БЕГУЩИЙ ЧЕЛ";
             this.Size = new Size(800, 500);
             this.DoubleBuffered = true; // убирает мерцание
-            this.KeyPreview = true; // чтобы форма ловила клавиши
+            this.KeyPreview = true;
 
-            // Создаем твой движок!
             _game = new GameEngine();
 
-            // Настраиваем таймер (обновление 60 раз в секунду)
             _gameTimer = new System.Windows.Forms.Timer();
-            _gameTimer.Interval = 16; // ~60 FPS
+            _gameTimer.Interval = 16;
             _gameTimer.Tick += GameLoop;
             _gameTimer.Start();
 
             try
             {
-                // Загружаем кадры анимации
                 _runmanFrames = new Image[]
                 {
                     Image.FromFile("runman1.png"),
@@ -54,18 +48,16 @@ namespace BEGUSHIY_CHEL
                 _dangerImage = Image.FromFile("danger.png");
                 _fonImage = Image.FromFile("fon.png");
 
-                // Для совместимости с остальным кодом, если где-то еще используется _runmanImage
                 _runmanImage = _runmanFrames[0];
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Не удалось загрузить картинки: {ex.Message}. Будут использоваться заглушки.");
-                // Если картинок нет, создадим заглушки, чтобы программа не падала
+                //заглушки
                 _dangerImage = new Bitmap(1, 1);
                 _fonImage = new Bitmap(1, 1);
 
                 MessageBox.Show($"Не удалось загрузить кадры анимации: {ex.Message}");
-                // Заглушка
                 _runmanFrames = new Image[] { new Bitmap(1, 1) };
                 _runmanImage = _runmanFrames[0];
             }
@@ -90,13 +82,11 @@ namespace BEGUSHIY_CHEL
             _game.GameOver += () => {
                 this.Invoke((MethodInvoker)delegate
                 {
-                    // Убираем MessageBox
                     _showGameOverScreen = true;
-                    this.Invalidate(); // Перерисовать форму сразу
+                    this.Invalidate();
                 });
             };
 
-            // Добавим кнопку сброса
             var resetButton = new Button
             {
                 Text = "Новая игра",
@@ -106,40 +96,35 @@ namespace BEGUSHIY_CHEL
             resetButton.Click += (s, e) =>
             {
                 _game.ResetGame();
-                _showGameOverScreen = false; // Убираем экран Game Over
-                this.Invalidate(); // Перерисовываем
+                _showGameOverScreen = false;
+                this.Invalidate();
             };
             this.Controls.Add(resetButton);
 
-            // Создаем красивый счет
             _scoreLabel = new Label
             {
-                Location = new System.Drawing.Point(550, 20),  // Положение (правый верхний угол)
+                Location = new System.Drawing.Point(550, 20),
                 Size = new Size(200, 80),
                 Font = new Font("Arial", 16, FontStyle.Bold),
                 ForeColor = Color.White,
-                BackColor = Color.Black,         // Можно сделать прозрачным, если фон не мешает
+                BackColor = Color.Black,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Text = "Score: 0"
             };
             this.Controls.Add(_scoreLabel);
 
-            // Чтобы лейбл был поверх всего
             _scoreLabel.BringToFront();
         }
 
-        // Игровой цикл (вызывается каждый тик таймера)
         private void GameLoop(object sender, EventArgs e)
         {
             if (_game != null && !_game.IsGameOver)
             {
-                _game.Update(); // ТВОЙ ГЛАВНЫЙ МЕТОД!
+                _game.Update();
 
-                // Анимация игрока (только если игра не окончена и игрок на земле — бежит)
                 if (!_game.IsGameOver && !_game.Player.IsJumping)
                 {
                     _frameCounter++;
-                    // Меняем кадр каждые (60 / FramesPerSecond) тиков
                     if (_frameCounter >= 60 / FramesPerSecond)
                     {
                         _frameCounter = 0;
@@ -149,11 +134,9 @@ namespace BEGUSHIY_CHEL
                 }
                 else
                 {
-                    // Если игрок в прыжке или игра окончена, можно показывать статичный кадр
-                    _runmanImage = _runmanFrames[0]; // или специальный кадр прыжка
+                    _runmanImage = _runmanFrames[0];
                 }
 
-                // Перерисовываем форму
                 this.Invalidate();
             }
         }
@@ -165,45 +148,39 @@ namespace BEGUSHIY_CHEL
             if (_game == null) return;
 
             var g = e.Graphics;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // Сглаживание
-            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor; // Для пиксель-арта
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
 
-            // РИСУЕМ ФОН (задний план)
+            //фон
             if (_fonImage != null && _fonImage.Width > 1)
             {
-                // Рисуем фон на весь экран (можно и с тайлингом, если картинка маленькая)
                 g.DrawImage(_fonImage, 0, 0, this.Width, this.Height);
             }
             else
             {
-                // Заглушка: заливаем всё небом, а землю рисуем линией
                 using (var brush = new SolidBrush(Color.SkyBlue))
                 {
-                    g.FillRectangle(brush, 0, 0, this.Width, _game.Player.Y + _game.Player.Height); // Небо до земли
+                    g.FillRectangle(brush, 0, 0, this.Width, _game.Player.Y + _game.Player.Height);
                 }
                 using (var brush = new SolidBrush(Color.Green))
                 {
-                    g.FillRectangle(brush, 0, _game.Player.Y + _game.Player.Height, this.Width, this.Height); // Земля
+                    g.FillRectangle(brush, 0, _game.Player.Y + _game.Player.Height, this.Width, this.Height);
                 }
             }
 
-            // Получаем уровень земли (из настроек или высчитываем)
-            int groundLevel = _game.Player.Y + _game.Player.Height; // Можно и так, но лучше брать из _settings
+            int groundLevel = _game.Player.Y + _game.Player.Height;
 
-            // РИСУЕМ ПРЕПЯТСТВИЯ
+            //препятсвия
             if (_dangerImage != null && _dangerImage.Width > 1)
             {
                 foreach (var obstacle in _game.Obstacles)
                 {
-                    // Рисуем картинку препятствия. Она может быть больше/меньше,
-                    // поэтому растягиваем её под размеры препятствия.
                     g.DrawImage(_dangerImage,
                         new Rectangle(obstacle.X, obstacle.Y, obstacle.Width, obstacle.Height));
                 }
             }
             else
             {
-                // Заглушка: рисуем синие квадраты
                 using (var brush = new SolidBrush(Color.Blue))
                 {
                     foreach (var obstacle in _game.Obstacles)
@@ -213,7 +190,7 @@ namespace BEGUSHIY_CHEL
                 }
             }
 
-            // РИСУЕМ ИГРОКА (поверх препятствий)
+            //игрок
             if (_runmanImage != null && _runmanImage.Width > 1)
             {
                 g.DrawImage(_runmanImage,
@@ -221,23 +198,19 @@ namespace BEGUSHIY_CHEL
             }
             else
             {
-                // Заглушка: рисуем красный квадрат
                 using (var brush = new SolidBrush(Color.Red))
                 {
                     g.FillRectangle(brush, _game.Player.X, _game.Player.Y, _game.Player.Width, _game.Player.Height);
                 }
             }
 
-            // Если игра окончена, рисуем затемнение и надпись
             if (_showGameOverScreen)
             {
-                // Полупрозрачный черный фон
                 using (var brush = new SolidBrush(Color.FromArgb(150, 0, 0, 0)))
                 {
                     g.FillRectangle(brush, 0, 0, this.Width, this.Height);
                 }
 
-                // Рисуем картинку Game Over (если есть)
                 if (_gameOverImage != null)
                 {
                     int imgX = (this.Width - _gameOverImage.Width) / 2;
@@ -245,7 +218,6 @@ namespace BEGUSHIY_CHEL
                     g.DrawImage(_gameOverImage, imgX, imgY);
                 }
 
-                // Рисуем текст (можно поверх картинки или отдельно)
                 using (var font = new Font("Arial", 36, FontStyle.Bold))
                 using (var brush = new SolidBrush(Color.White))
                 {
@@ -254,13 +226,10 @@ namespace BEGUSHIY_CHEL
                     float textX = (this.Width - textSize.Width) / 2;
                     float textY = (this.Height - textSize.Height) / 2;
 
-                    // Тень
                     g.DrawString(text, font, new SolidBrush(Color.Black), textX + 3, textY + 3);
-                    // Текст
                     g.DrawString(text, font, brush, textX, textY);
                 }
 
-                // Можно добавить инструкцию
                 using (var font = new Font("Arial", 14))
                 {
                     string smallText = "Нажми 'Новая игра'";
@@ -271,12 +240,11 @@ namespace BEGUSHIY_CHEL
             }
         }
 
-        // Обработка клавиш
         protected override void OnKeyDown(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space)
             {
-                _game.Jump(); // ТВОЙ МЕТОД ПРЫЖКА!
+                _game.Jump();
                 e.Handled = true;
             }
             base.OnKeyDown(e);
